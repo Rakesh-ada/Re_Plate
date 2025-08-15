@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RePlate Campus - Surplus Food Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .role-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .role-btn {
+            background: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .role-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .role-btn.active {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .dashboard {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .dashboard h2 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            background: #45a049;
+        }
+
+        .btn-danger {
+            background: #f44336;
+        }
+
+        .btn-danger:hover {
+            background: #da190b;
+        }
+
+        .surplus-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .surplus-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 5px solid #4CAF50;
+            transition: transform 0.3s ease;
+        }
+
+        .surplus-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .surplus-item.flash-sale {
+            border-left-color: #ff9800;
+            background: #fff3e0;
+        }
+
+        .surplus-item.donation {
+            border-left-color: #2196f3;
+            background: #e3f2fd;
+        }
+
+        .surplus-item h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .surplus-item p {
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .timer {
+            background: #ff5722;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            opacity: 0.9;
+        }
+
+        .notification {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .notification.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .flash-sale-banner {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .role-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .dashboard {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ RePlate Campus</h1>
+            <p>Surplus Food Management & Redistribution Platform</p>
+        </div>
+
+        <div class="role-selector">
+            <button class="role-btn active" onclick="switchRole('staff')">👨‍🍳 Canteen Staff</button>
+            <button class="role-btn" onclick="switchRole('student')">🎓 Student</button>
+            <button class="role-btn" onclick="switchRole('volunteer')">🤝 Volunteer/NGO</button>
+            <button class="role-btn" onclick="switchRole('admin')">👨‍💼 Admin</button>
+        </div>
+
+        <div id="notification" class="notification"></div>
+
+        <!-- Staff Dashboard -->
+        <div id="staff-dashboard" class="dashboard active">
+            <h2>Staff Dashboard - Log Surplus Food</h2>
+            <form id="surplus-form">
+                <div class="form-group">
+                    <label for="food-name">Food Item Name</label>
+                    <input type="text" id="food-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Quantity Available</label>
+                    <input type="number" id="quantity" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="unit">Unit</label>
+                    <select id="unit" required>
+                        <option value="">Select Unit</option>
+                        <option value="plates">Plates</option>
+                        <option value="kg">Kilograms</option>
+                        <option value="pieces">Pieces</option>
+                        <option value="liters">Liters</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="category">Food Category</label>
+                    <select id="category" required>
+                        <option value="">Select Category</option>
+                        <option value="rice">Rice/Grains</option>
+                        <option value="curry">Curry/Gravy</option>
+                        <option value="snacks">Snacks</option>
+                        <option value="dessert">Dessert</option>
+                        <option value="beverages">Beverages</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="prep-time">Preparation Time</label>
+                    <input type="datetime-local" id="prep-time" required>
+                </div>
+                <div class="form-group">
+                    <label for="action-type">Action</label>
+                    <select id="action-type" required>
+                        <option value="">Select Action</option>
+                        <option value="flash-sale">Flash Sale (Discounted)</option>
+                        <option value="donation">Donation to NGO</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Log Surplus Food</button>
+            </form>
+
+            <div id="staff-surplus-list" class="surplus-list"></div>
+        </div>
+
+        <!-- Student Dashboard -->
+        <div id="student-dashboard" class="dashboard">
+            <h2>Student Dashboard - Flash Sales</h2>
+            <div class="flash-sale-banner">
+                <h3>🔥 Flash Sale Alert!</h3>
+                <p>Get discounted surplus food before it expires!</p>
+            </div>
+            <div id="student-surplus-list" class="surplus-list"></div>
+        </div>
+
+        <!-- Volunteer Dashboard -->
+        <div id="volunteer-dashboard" class="dashboard">
+            <h2>Volunteer/NGO Dashboard - Donations</h2>
+            <div id="volunteer-surplus-list" class="surplus-list"></div>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="admin-dashboard" class="dashboard">
+            <h2>Admin Dashboard - Impact Analytics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 id="total-saved">0</h3>
+                    <p>KG Food Saved</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="co2-prevented">0</h3>
+                    <p>KG CO₂ Prevented</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="meals-donated">0</h3>
+                    <p>Meals Donated</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="meals-sold">0</h3>
+                    <p>Flash Sales</p>
+                </div>
+            </div>
+            <button class="btn" onclick="generateReport()">Generate Monthly Report</button>
+        </div>
+    </div>
+
+    <script>
+        // Global data storage
+        let surplusItems = [];
+        let stats = {
+            totalSaved: 0,
+            co2Prevented: 0,
+            mealsDonated: 0,
+            mealsSold: 0
+        };
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default prep time to current time
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('prep-time').value = now.toISOString().slice(0, 16);
+            
+            updateAllDisplays();
+            startTimers();
+        });
+
+        // Role switching
+        function switchRole(role) {
+            // Update active button
+            document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Hide all dashboards
+            document.querySelectorAll('.dashboard').forEach(dashboard => {
+                dashboard.classList.remove('active');
+            });
+
+            // Show selected dashboard
+            document.getElementById(role + '-dashboard').classList.add('active');
+        }
+
+        // Staff form submission
+        document.getElementById('surplus-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                id: Date.now(),
+                name: document.getElementById('food-name').value,
+                quantity: parseInt(document.getElementById('quantity').value),
+                unit: document.getElementById('unit').value,
+                category: document.getElementById('category').value,
+                prepTime: new Date(document.getElementById('prep-time').value),
+                actionType: document.getElementById('action-type').value,
+                loggedAt: new Date(),
+                status: 'available'
+            };
+
+            // Calculate expiry time (2 hours from prep time for demo)
+            formData.expiryTime = new Date(formData.prepTime.getTime() + (2 * 60 * 60 * 1000));
+
+            surplusItems.push(formData);
+            
+            showNotification(`✅ ${formData.name} logged successfully for ${formData.actionType}!`);
+            
+            // Reset form
+            this.reset();
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('prep-time').value = now.toISOString().slice(0, 16);
+            
+            updateAllDisplays();
+        });
+
+        // Update all displays
+        function updateAllDisplays() {
+            updateStaffDisplay();
+            updateStudentDisplay();
+            updateVolunteerDisplay();
+            updateAdminDisplay();
+        }
+
+        // Update staff display
+        function updateStaffDisplay() {
+            const container = document.getElementById('staff-surplus-list');
+            container.innerHTML = '';
+
+            surplusItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `surplus-item ${item.actionType}`;
+                div.innerHTML = `
+                    <h3>${item.name}</h3>
+                    <p><strong>Quantity:</strong> ${item.quantity} ${item.unit}</p>
+                    <p><strong>Category:</strong> ${item.category}</p>
+                    <p><strong>Prepared:</strong> ${item.prepTime.toLocaleString()}</p>
+                    <p><strong>Expires:</strong> ${item.expiryTime.toLocaleString()}</p>
+                    <p><strong>Action:</strong> ${item.actionType.replace('-', ' ').toUpperCase()}</p>
+                    <p><strong>Status:</strong> ${item.status.toUpperCase()}</p>
+                    <div class="timer" data-expiry="${item.expiryTime.getTime()}">Calculating...</div>
+                    ${item.status === 'available' ? `<br><br><button class="btn btn-danger" onclick="markAsCompleted(${item.id})">Mark as Completed</button>` : ''}
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Update student display
+        function updateStudentDisplay() {
+            const container = document.getElementById('student-surplus-list');
+            container.innerHTML = '';
+
+            const flashSaleItems = surplusItems.filter(item => 
+                item.actionType === 'flash-sale' && 
+                item.status === 'available' && 
+                item.expiryTime > new Date()
+            );
+
+            if (flashSaleItems.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666; font-size: 18px;">No flash sales available right now. Check back later!</p>';
+                return;
+            }
+
+            flashSaleItems.forEach(item => {
+                const discountPrice = Math.round(item.quantity * 0.6); // 40% discount
+                const div = document.createElement('div');
+                div.className = 'surplus-item flash-sale';
+                div.innerHTML = `
+                    <h3>🔥 ${item.name}</h3>
+                    <p><strong>Quantity:</strong> ${item.quantity} ${item.unit}</p>
+                    <p><strong>Category:</strong> ${item.category}</p>
+                    <p><strong>Discounted Price:</strong> ₹${discountPrice} <strike>₹${item.quantity * 1}</strike></p>
+                    <div class="timer" data-expiry="${item.expiryTime.getTime()}">Calculating...</div>
+                    <br><button class="btn" onclick="purchaseItem(${item.id})">Purchase Now</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Update volunteer display
+        function updateVolunteerDisplay() {
+            const container = document.getElementById('volunteer-surplus-list');
+            container.innerHTML = '';
+
+            const donationItems = surplusItems.filter(item => 
+                item.actionType === 'donation' && 
+                item.status === 'available' && 
+                item.expiryTime > new Date()
+            );
+
+            if (donationItems.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666; font-size: 18px;">No donations available for pickup right now.</p>';
+                return;
+            }
+
+            donationItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'surplus-item donation';
+                div.innerHTML = `
+                    <h3>🤝 ${item.name}</h3>
+                    <p><strong>Quantity:</strong> ${item.quantity} ${item.unit}</p>
+                    <p><strong>Category:</strong> ${item.category}</p>
+                    <p><strong>Pickup Location:</strong> Main Canteen Counter</p>
+                    <div class="timer" data-expiry="${item.expiryTime.getTime()}">Calculating...</div>
+                    <br><button class="btn" onclick="confirmPickup(${item.id})">Confirm Pickup</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Update admin display
+        function updateAdminDisplay() {
+            document.getElementById('total-saved').textContent = stats.totalSaved;
+            document.getElementById('co2-prevented').textContent = stats.co2Prevented;
+            document.getElementById('meals-donated').textContent = stats.mealsDonated;
+            document.getElementById('meals-sold').textContent = stats.mealsSold;
+        }
+
+        // Purchase item (student action)
+        function purchaseItem(id) {
+            const item = surplusItems.find(i => i.id === id);
+            if (item) {
+                item.status = 'sold';
+                stats.mealsSold++;
+                stats.totalSaved += item.quantity;
+                stats.co2Prevented += Math.round(item.quantity * 2.5); // Rough calculation
+                
+                showNotification(`🎉 Successfully purchased ${item.name}! Pick up from canteen counter.`);
+                updateAllDisplays();
+            }
+        }
+
+        // Confirm pickup (volunteer action)
+        function confirmPickup(id) {
+            const item = surplusItems.find(i => i.id === id);
+            if (item) {
+                item.status = 'donated';
+                stats.mealsDonated++;
+                stats.totalSaved += item.quantity;
+                stats.co2Prevented += Math.round(item.quantity * 2.5); // Rough calculation
+                
+                showNotification(`✅ Pickup confirmed for ${item.name}. Thank you for helping reduce waste!`);
+                updateAllDisplays();
+            }
+        }
+
+        // Mark as completed (staff action)
+        function markAsCompleted(id) {
+            const item = surplusItems.find(i => i.id === id);
+            if (item) {
+                item.status = 'completed';
+                showNotification(`✅ ${item.name} marked as completed.`);
+                updateAllDisplays();
+            }
+        }
+
+        // Show notification
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Start timers
+        function startTimers() {
+            setInterval(updateTimers, 1000);
+        }
+
+        // Update countdown timers
+        function updateTimers() {
+            const timers = document.querySelectorAll('.timer');
+            const now = new Date().getTime();
+
+            timers.forEach(timer => {
+                const expiry = parseInt(timer.dataset.expiry);
+                const timeLeft = expiry - now;
+
+                if (timeLeft > 0) {
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                    
+                    timer.textContent = `⏰ ${hours}h ${minutes}m ${seconds}s left`;
+                } else {
+                    timer.textContent = '⚠️ EXPIRED';
+                    timer.style.background = '#f44336';
+                }
+            });
+        }
+
+        // Generate report
+        function generateReport() {
+            const report = `
+📊 MONTHLY IMPACT REPORT - ${new Date().toLocaleDateString()}
+
+🍽️ Food Saved: ${stats.totalSaved} kg
+🌱 CO₂ Prevented: ${stats.co2Prevented} kg
+🤝 Meals Donated: ${stats.mealsDonated}
+💰 Flash Sales: ${stats.mealsSold}
+
+Total Items Processed: ${surplusItems.length}
+Waste Reduction: ${Math.round((stats.totalSaved / (stats.totalSaved + 10)) * 100)}%
+
+Generated on: ${new Date().toLocaleString()}
+            `;
+            
+            alert(report);
+        }
+    </script>
+</body>
+</html>
